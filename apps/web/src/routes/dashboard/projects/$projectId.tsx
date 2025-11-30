@@ -17,6 +17,7 @@ import { UploadDocumentDialog } from "@/components/upload-document-dialog";
 export const Route = createFileRoute("/dashboard/projects/$projectId")({
     component: ProjectDetailsPage,
     loader: async ({ params }) => {
+        // @ts-ignore
         const res = await client.api.projects[":id"].$get({
             param: { id: params.projectId },
         });

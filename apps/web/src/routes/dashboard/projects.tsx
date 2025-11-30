@@ -9,6 +9,7 @@ import { Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/dashboard/projects")({
   component: ProjectsPage,
   loader: async () => {
+    // @ts-ignore
     const res = await client.api.projects.$get();
     if (!res.ok) {
       throw new Error("Failed to fetch projects");

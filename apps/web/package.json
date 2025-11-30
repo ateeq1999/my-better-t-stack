@@ -19,6 +19,7 @@
     "@tanstack/react-form": "^1.12.3",
     "@tanstack/react-query": "^5.85.5",
     "@tanstack/react-router": "^1.114.25",
+    "@tanstack/zod-form-adapter": "^0.42.1",
     "@web/auth": "workspace:*",
     "better-auth": "catalog:",
     "class-variance-authority": "^0.7.1",
