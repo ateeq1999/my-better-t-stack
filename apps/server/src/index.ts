@@ -7,6 +7,8 @@ import { logger } from "hono/logger";
 import projectsRouter from "./routes/projects";
 import documentsRouter from "./routes/documents";
 import chatRouter from "./routes/chat";
+import subscriptionsRouter from "./routes/subscriptions";
+import auditLogsRouter from "./routes/audit-logs";
 
 const app = new Hono();
 
@@ -34,6 +36,8 @@ app.get("/dashboard", (c) => {
 app.route("/api/projects", projectsRouter);
 app.route("/api/documents", documentsRouter);
 app.route("/api/chat", chatRouter);
+app.route("/api/subscriptions", subscriptionsRouter);
+app.route("/api/audit-logs", auditLogsRouter);
 
 export default app;
 export type AppType = typeof app;
