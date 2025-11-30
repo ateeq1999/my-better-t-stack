@@ -1,11 +1,12 @@
 import { pgTable, text, timestamp, varchar, json, pgEnum } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { relations } from "drizzle-orm";
+import { createId } from '@paralleldrive/cuid2';
 
 export const subscriptionStatusEnum = pgEnum("subscription_status", ["active", "past_due", "canceled", "trialing"]);
 
 export const subscriptions = pgTable("subscription", {
-    id: varchar("id", { length: 36 }).primaryKey(),
+    id: varchar("id", { length: 36 }).primaryKey().default(createId()),
     userId: varchar("user_id", { length: 36 }).notNull().references(() => user.id),
     stripeSubscriptionId: text("stripe_subscription_id"),
     plan: text("plan").notNull(),

@@ -1,12 +1,13 @@
 import { pgTable, text, timestamp, pgEnum, varchar } from "drizzle-orm/pg-core";
 import { projects } from "./projects";
 import { relations } from "drizzle-orm";
+import { createId } from '@paralleldrive/cuid2';
 
 export const documentTypeEnum = pgEnum("document_type", ["legal", "marketing", "technical", "other"]);
 export const indexingStatusEnum = pgEnum("indexing_status", ["pending", "processing", "completed", "failed"]);
 
 export const documents = pgTable("document", {
-    id: varchar("id", { length: 36 }).primaryKey(),
+    id: varchar("id", { length: 36 }).primaryKey().default(createId()),
     projectId: text("project_id").notNull().references(() => projects.id),
     name: text("name").notNull(),
     url: text("url").notNull(),

@@ -1,9 +1,10 @@
 import { pgTable, text, timestamp, varchar, json, date } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { relations } from "drizzle-orm";
+import { createId } from '@paralleldrive/cuid2';
 
 export const projects = pgTable("project", {
-    id: varchar("id", { length: 36 }).primaryKey(),
+    id: varchar("id", { length: 36 }).primaryKey().default(createId()),
     name: text("name").notNull(),
     description: text("description"),
     location: text("location"),

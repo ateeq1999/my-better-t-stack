@@ -1,9 +1,10 @@
 import { pgTable, text, timestamp, varchar, json } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { relations } from "drizzle-orm";
+import { createId } from '@paralleldrive/cuid2';
 
 export const auditLogs = pgTable("audit_log", {
-    id: varchar("id", { length: 36 }).primaryKey(),
+    id: varchar("id", { length: 36 }).primaryKey().default(createId()),
     actorId: varchar("actor_id", { length: 36 }).references(() => user.id),
     action: text("action").notNull(),
     resource: json("resource"), // { type: string; id?: string }

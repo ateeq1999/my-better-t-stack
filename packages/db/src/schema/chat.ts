@@ -8,11 +8,12 @@ import {
     pgEnum,
     json,
 } from "drizzle-orm/pg-core";
+import { createId } from '@paralleldrive/cuid2';
 
 export const roleEnum = pgEnum("message_role", ["user", "assistant", "system"]);
 
 export const conversations = pgTable("conversation", {
-    id: varchar("id", { length: 36 }).primaryKey(),
+    id: varchar("id", { length: 36 }).primaryKey().default(createId()),
     userId: text("user_id").notNull().references(() => user.id),
     title: text("title"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
@@ -20,7 +21,7 @@ export const conversations = pgTable("conversation", {
 });
 
 export const messages = pgTable("message", {
-    id: varchar("id", { length: 36 }).primaryKey(),
+    id: varchar("id", { length: 36 }).primaryKey().default(createId()),
     conversationId: text("conversation_id").notNull(),
     role: roleEnum("role").notNull(),
     content: text("content").notNull(),

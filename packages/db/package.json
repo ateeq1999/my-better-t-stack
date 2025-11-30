@@ -24,6 +24,7 @@
     "typescript": "^5"
   },
   "dependencies": {
+    "@paralleldrive/cuid2": "^3.0.4",
     "dotenv": "catalog:",
     "drizzle-orm": "^0.44.2",
     "mysql2": "^3.14.0",
