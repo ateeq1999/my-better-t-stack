@@ -15,13 +15,13 @@ export const Route = createFileRoute("/dashboard")({
 	},
 });
 
-function RouteComponent() {
-	const { session } = Route.useRouteContext();
+import { DashboardLayout } from "@/components/layouts/dashboard-layout";
+import { Outlet } from "@tanstack/react-router";
 
+function RouteComponent() {
 	return (
-		<div>
-			<h1>Dashboard</h1>
-			<p>Welcome {session.data?.user.name}</p>
-		</div>
+		<DashboardLayout>
+			<Outlet />
+		</DashboardLayout>
 	);
 }
