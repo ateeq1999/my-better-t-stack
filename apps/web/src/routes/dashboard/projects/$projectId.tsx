@@ -1,10 +1,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { client } from "@/lib/api";
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowLeft, FileText, MapPin, Upload, LayoutGrid, List as ListIcon } from "lucide-react";
+import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { ArrowLeft, FileText, MapPin, Upload, LayoutGrid, List as ListIcon, Save } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
     Table,
     TableBody,
@@ -32,6 +38,45 @@ export const Route = createFileRoute("/dashboard/projects/$projectId")({
 
 function ProjectDetailsPage() {
     const project = Route.useLoaderData();
+    const router = useRouter();
+    const queryClient = useQueryClient();
+    const [formData, setFormData] = useState({
+        name: project.name,
+        description: project.description || "",
+        location: project.location || "",
+        phase: project.phase || "",
+        launchDate: project.launchDate || "",
+    });
+
+    const updateProjectMutation = useMutation({
+        mutationFn: async (data: typeof formData) => {
+            // @ts-ignore
+            const res = await client.api.projects[":id"].$patch({
+                param: { id: project.id },
+                json: data,
+            });
+            if (!res.ok) throw new Error("Failed to update project");
+            return res.json();
+        },
+        onSuccess: () => {
+            toast.success("Project updated successfully");
+            router.invalidate();
+            queryClient.invalidateQueries({ queryKey: ["projects"] });
+        },
+        onError: () => {
+            toast.error("Failed to update project");
+        },
+    });
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        updateProjectMutation.mutate(formData);
+    };
 
     return (
         <div className="space-y-8">
@@ -146,11 +191,78 @@ function ProjectDetailsPage() {
                     <Card className="border-muted/60 shadow-sm">
                         <CardHeader>
                             <CardTitle>Project Settings</CardTitle>
+                            <CardDescription>
+                                Update your project details and configuration.
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-sm text-muted-foreground">
-                                Settings content placeholder.
-                            </p>
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="name">Project Name</Label>
+                                    <Input
+                                        id="name"
+                                        name="name"
+                                        value={formData.name}
+                                        onChange={handleInputChange}
+                                        placeholder="Enter project name"
+                                    />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="description">Description</Label>
+                                    <Textarea
+                                        id="description"
+                                        name="description"
+                                        value={formData.description}
+                                        onChange={handleInputChange}
+                                        placeholder="Enter project description"
+                                        rows={4}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="location">Location</Label>
+                                        <Input
+                                            id="location"
+                                            name="location"
+                                            value={formData.location}
+                                            onChange={handleInputChange}
+                                            placeholder="City, Country"
+                                        />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor="phase">Phase</Label>
+                                        <Input
+                                            id="phase"
+                                            name="phase"
+                                            value={formData.phase}
+                                            onChange={handleInputChange}
+                                            placeholder="e.g., Planning, Construction"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="launchDate">Launch Date</Label>
+                                    <Input
+                                        id="launchDate"
+                                        name="launchDate"
+                                        type="date"
+                                        value={formData.launchDate}
+                                        onChange={handleInputChange}
+                                    />
+                                </div>
+                                <div className="flex justify-end pt-4">
+                                    <Button type="submit" disabled={updateProjectMutation.isPending}>
+                                        {updateProjectMutation.isPending ? (
+                                            "Saving..."
+                                        ) : (
+                                            <>
+                                                <Save className="mr-2 h-4 w-4" />
+                                                Save Changes
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                            </form>
                         </CardContent>
                     </Card>
                 </TabsContent>
