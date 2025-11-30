@@ -1,6 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { LayoutDashboard, Folder, FileText, Settings, MessageSquare, Search } from "lucide-react";
+import { LayoutDashboard, Folder, FileText, Settings, MessageSquare, Search, Shield } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { authClient } from "@/lib/auth-client";
 
 const items = [
     {
@@ -29,6 +30,11 @@ const items = [
         icon: MessageSquare,
     },
     {
+        title: "Admin",
+        url: "/dashboard/admin",
+        icon: Shield,
+    },
+    {
         title: "Settings",
         url: "/dashboard/settings",
         icon: Settings,
@@ -37,6 +43,21 @@ const items = [
 
 export function AppSidebar() {
     const location = useLocation();
+    // @ts-ignore - role is added dynamically
+    const { data: session } = authClient.useSession();
+    const userRole = session?.user?.role as string | undefined;
+
+    const filteredItems = items.filter((item) => {
+        if (!userRole) return false;
+        if (userRole === "admin") return true; // Admin sees all
+        if (userRole === "developer") {
+            return ["Dashboard", "Projects", "Documents", "Settings", "Chat"].includes(item.title);
+        }
+        if (userRole === "broker") {
+            return ["Dashboard", "Marketplace", "Chat", "Settings"].includes(item.title);
+        }
+        return false;
+    });
 
     return (
         <aside className="hidden w-64 flex-col border-r bg-white dark:bg-gray-950 md:flex">
@@ -46,7 +67,7 @@ export function AppSidebar() {
                 </span>
             </div>
             <nav className="flex-1 space-y-1 p-4">
-                {items.map((item) => {
+                {filteredItems.map((item) => {
                     const isActive = location.pathname === item.url;
                     return (
                         <Link
