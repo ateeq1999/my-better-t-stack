@@ -7,4 +7,14 @@ import type { AppType } from "../../../server/src/index"; // Adjust path if need
 // For now, let's assume we can import the type. 
 // If not, we might need to move AppType to a shared package.
 
-export const client = hc<AppType>("http://localhost:3000");
+export const client = hc<AppType>("http://localhost:3000", {
+    headers: {
+        "Content-Type": "application/json",
+    },
+    fetch: (input: RequestInfo | URL, init?: RequestInit) => {
+        return fetch(input, {
+            ...init,
+            credentials: "include",
+        });
+    },
+});

@@ -33,10 +33,10 @@ app.get("/dashboard", (c) => {
 	return c.redirect("http://localhost:3001/dashboard");
 });
 
+app.route("/api/subscriptions", subscriptionsRouter);
 app.route("/api/projects", projectsRouter);
 app.route("/api/documents", documentsRouter);
 app.route("/api/chat", chatRouter);
-app.route("/api/subscriptions", subscriptionsRouter);
 app.route("/api/audit-logs", auditLogsRouter);
 
 export default app;
