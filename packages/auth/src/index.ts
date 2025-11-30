@@ -5,7 +5,7 @@ import * as schema from "@web/db/schema/auth";
 
 export const auth = betterAuth<BetterAuthOptions>({
 	database: drizzleAdapter(db, {
-		provider: "mysql",
+		provider: "pg",
 		schema: schema,
 	}),
 	trustedOrigins: [process.env.CORS_ORIGIN || ""],
