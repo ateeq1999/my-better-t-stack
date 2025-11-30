@@ -1,9 +1,9 @@
-import { pgTable, text, timestamp, uuid, json, date } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, varchar, json, date } from "drizzle-orm/pg-core";
 import { user } from "./auth";
 import { relations } from "drizzle-orm";
 
 export const projects = pgTable("project", {
-    id: uuid("id").primaryKey().defaultRandom(),
+    id: varchar("id", { length: 36 }).primaryKey(),
     name: text("name").notNull(),
     description: text("description"),
     location: text("location"),

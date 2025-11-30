@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { db } from "@web/db";
-import { conversations, messages } from "@web/db/schema";
+import { conversations, messages } from "@web/db/schema/chat";
 import { eq, desc } from "drizzle-orm";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";

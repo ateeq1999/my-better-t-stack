@@ -12,6 +12,15 @@ export const auth = betterAuth<BetterAuthOptions>({
 	emailAndPassword: {
 		enabled: true,
 	},
+	user: {
+		additionalFields: {
+			role: {
+				type: "string",
+				required: true,
+				defaultValue: "developer",
+			},
+		},
+	},
 	advanced: {
 		defaultCookieAttributes: {
 			sameSite: "none",

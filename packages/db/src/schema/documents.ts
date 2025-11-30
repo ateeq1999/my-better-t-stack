@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, pgEnum, varchar } from "drizzle-orm/pg-core";
 import { projects } from "./projects";
 import { relations } from "drizzle-orm";
 
@@ -6,8 +6,8 @@ export const documentTypeEnum = pgEnum("document_type", ["legal", "marketing", "
 export const indexingStatusEnum = pgEnum("indexing_status", ["pending", "processing", "completed", "failed"]);
 
 export const documents = pgTable("document", {
-    id: uuid("id").primaryKey().defaultRandom(),
-    projectId: uuid("project_id").notNull().references(() => projects.id, { onDelete: "cascade" }),
+    id: varchar("id", { length: 36 }).primaryKey(),
+    projectId: text("project_id").notNull().references(() => projects.id),
     name: text("name").notNull(),
     url: text("url").notNull(),
     type: documentTypeEnum("type").default("other"),
