@@ -2,6 +2,7 @@ import { pgTable, text, timestamp, varchar, json, date } from "drizzle-orm/pg-co
 import { user } from "./auth";
 import { relations } from "drizzle-orm";
 import { createId } from '@paralleldrive/cuid2';
+import { documents } from "./documents";
 
 export const projects = pgTable("project", {
     id: varchar("id", { length: 36 }).primaryKey().default(createId()),
@@ -19,9 +20,10 @@ export const projects = pgTable("project", {
     updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
 });
 
-export const projectsRelations = relations(projects, ({ one }) => ({
+export const projectsRelations = relations(projects, ({ one, many }) => ({
     developer: one(user, {
         fields: [projects.developerId],
         references: [user.id],
     }),
+    documents: many(documents),
 }));

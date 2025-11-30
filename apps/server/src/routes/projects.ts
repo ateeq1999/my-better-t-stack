@@ -21,6 +21,7 @@ app.get("/", async (c) => {
     const allProjects = await db.query.projects.findMany({
         with: {
             developer: true,
+            documents: true,
         },
     });
     return c.json(allProjects);
@@ -52,6 +53,7 @@ app.get("/:id", async (c) => {
         where: eq(projects.id, id),
         with: {
             developer: true,
+            documents: true,
         },
     });
 
@@ -60,6 +62,30 @@ app.get("/:id", async (c) => {
     }
 
     return c.json(project);
+});
+
+const updateProjectSchema = createProjectSchema.partial();
+
+app.patch("/:id", zValidator("json", updateProjectSchema), async (c) => {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const id = c.req.param("id");
+    const data = c.req.valid("json");
+
+    const [updatedProject] = await db
+        .update(projects)
+        .set(data)
+        .where(eq(projects.id, id))
+        .returning();
+
+    if (!updatedProject) {
+        return c.json({ error: "Project not found" }, 404);
+    }
+
+    return c.json(updatedProject);
 });
 
 export default app;
