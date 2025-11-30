@@ -17,7 +17,15 @@ app.use(
 	}),
 );
 
+import projectsRouter from "./routes/projects";
+import documentsRouter from "./routes/documents";
+import chatRouter from "./routes/chat";
+
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+
+app.route("/api/projects", projectsRouter);
+app.route("/api/documents", documentsRouter);
+app.route("/api/chat", chatRouter);
 
 app.get("/", (c) => {
 	return c.text("OK");
@@ -28,3 +36,4 @@ app.get("/dashboard", (c) => {
 });
 
 export default app;
+export type AppType = typeof app;

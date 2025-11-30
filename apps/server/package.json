@@ -10,17 +10,20 @@
     "start": "bun run dist/index.js"
   },
   "dependencies": {
-    "hono": "^4.8.2",
+    "@google/generative-ai": "^0.24.1",
+    "@hono/zod-validator": "^0.7.5",
+    "@web/auth": "workspace:*",
+    "@web/db": "workspace:*",
     "better-auth": "catalog:",
     "dotenv": "catalog:",
-    "zod": "^4.1.11",
-    "@web/auth": "workspace:*",
-    "@web/db": "workspace:*"
+    "drizzle-orm": "^0.44.2",
+    "hono": "^4.8.2",
+    "zod": "^4.1.13"
   },
   "devDependencies": {
-    "typescript": "^5.8.2",
     "@types/bun": "^1.2.6",
+    "@web/config": "workspace:*",
     "tsdown": "^0.16.5",
-    "@web/config": "workspace:*"
+    "typescript": "^5.8.2"
   }
 }
