@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, MapPin } from "lucide-react";
 import { client } from "@/lib/api";
 import { CreateProjectDialog } from "@/components/create-project-dialog";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/dashboard/projects")({
@@ -55,32 +55,36 @@ function ProjectsPage() {
           </div>
         ) : (
           projects.map((project) => (
-            <Link
-              key={project.id}
-              to="/dashboard/projects/$projectId"
-              params={{ projectId: project.id }}
-              className="group block h-full"
-            >
-              <Card className="h-full overflow-hidden border-muted/60 transition-all duration-300 hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/10">
-                <div className="h-32 w-full bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 group-hover:from-indigo-500/20 group-hover:via-purple-500/20 group-hover:to-pink-500/20 transition-colors" />
-                <CardHeader className="-mt-12 relative z-10">
-                  <div className="mb-3 inline-flex rounded-lg bg-background p-2 shadow-sm ring-1 ring-border">
-                    <MapPin className="h-5 w-5 text-indigo-600" />
-                  </div>
+            <Card key={project.id} className="h-full overflow-hidden border-muted/60 transition-all duration-300 hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-500/10">
+              <div className="h-32 w-full bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-pink-500/10 group-hover:from-indigo-500/20 group-hover:via-purple-500/20 group-hover:to-pink-500/20 transition-colors" />
+              <CardHeader className="-mt-12 relative z-10">
+                <div className="mb-3 inline-flex rounded-lg bg-background p-2 shadow-sm ring-1 ring-border">
+                  <MapPin className="h-5 w-5 text-indigo-600" />
+                </div>
+                <Link
+                  to="/dashboard/projects/$projectId"
+                  params={{ projectId: project.id }}
+                  className="group"
+                >
                   <CardTitle className="text-xl group-hover:text-indigo-600 transition-colors">
                     {project.name}
                   </CardTitle>
-                  <CardDescription className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider">
-                    {project.location}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="line-clamp-3 text-sm text-muted-foreground leading-relaxed">
-                    {project.description || "No description provided."}
-                  </p>
-                </CardContent>
-              </Card>
-            </Link>
+                </Link>
+                <CardDescription className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider">
+                  {project.location}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="line-clamp-3 text-sm text-muted-foreground leading-relaxed">
+                  {project.description || "No description provided."}
+                </p>
+              </CardContent>
+              <CardFooter>
+                <Link to="/dashboard/projects/$projectId/setup" params={{ projectId: project.id }}>
+                  <Button variant="outline" size="sm">Setup</Button>
+                </Link>
+              </CardFooter>
+            </Card>
           ))
         )}
       </div>
