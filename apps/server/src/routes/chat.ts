@@ -6,10 +6,38 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { auth } from "@web/auth";
 import { model } from "../lib/gemini";
+import { type InsertMessage } from "@web/db/schema/chat";
+import { documents } from "@web/db/schema/documents";
 
 const app = new Hono();
 
-import { documents } from "@web/db/schema/documents";
+
+// Helper function to create a new conversation
+async function createConversation(userId: string, projectId: string | undefined, content: string) {
+    const [newConv] = await db.insert(conversations).values({
+        userId: userId,
+        projectId: projectId,
+        title: content.substring(0, 50) + "...",
+    }).returning();
+    return newConv;
+}
+
+// Helper function to verify conversation ownership
+async function verifyConversationOwnership(conversationId: string, userId: string) {
+    const conversation = await db.query.conversations.findFirst({
+        where: eq(conversations.id, conversationId),
+    });
+    if (!conversation || conversation.userId !== userId) {
+        return null;
+    }
+    return conversation;
+}
+
+// Helper function to save a message
+async function saveMessage(message: Omit<InsertMessage, "id" | "createdAt">) {
+    const [newMessage] = await db.insert(messages).values(message).returning();
+    return newMessage;
+}
 
 const sendMessageSchema = z.object({
     conversationId: z.string().uuid().optional(),
@@ -30,19 +58,13 @@ app.post("/", zValidator("json", sendMessageSchema), async (c) => {
     let conversationId = data.conversationId;
     let projectId = data.projectId;
 
+    let conversation;
     if (!conversationId) {
-        const [newConv] = await db.insert(conversations).values({
-            userId: session.user.id,
-            projectId: projectId,
-            title: data.content.substring(0, 50) + "...",
-        }).returning();
-        conversationId = newConv.id;
+        conversation = await createConversation(session.user.id, projectId, data.content);
+        conversationId = conversation.id;
     } else {
-        // Verify ownership
-        const conversation = await db.query.conversations.findFirst({
-            where: eq(conversations.id, conversationId),
-        });
-        if (!conversation || conversation.userId !== session.user.id) {
+        conversation = await verifyConversationOwnership(conversationId, session.user.id);
+        if (!conversation) {
             return c.json({ error: "Conversation not found or unauthorized" }, 404);
         }
         // Use existing project ID if not provided
@@ -52,11 +74,11 @@ app.post("/", zValidator("json", sendMessageSchema), async (c) => {
     }
 
     // Save user message
-    const [userMsg] = await db.insert(messages).values({
+    const userMsg = await saveMessage({
         conversationId: conversationId!,
         role: "user",
         content: data.content,
-    }).returning();
+    });
 
     // Fetch conversation history
     const history = await db.query.messages.findMany({
@@ -98,8 +120,8 @@ app.post("/", zValidator("json", sendMessageSchema), async (c) => {
         }
 
         // Generate response
-        // Note: We are attaching files to the current prompt. 
-        // For multi-turn chat with files, it's better to use system instructions or caching, 
+        // Note: We are attaching files to the current prompt.
+        // For multi-turn chat with files, it's better to use system instructions or caching,
         // but attaching to the prompt works for simple cases.
         const result = await model.generateContent({
             systemInstruction: { parts: [{ text: systemInstruction }] },
@@ -118,11 +140,11 @@ app.post("/", zValidator("json", sendMessageSchema), async (c) => {
         const responseText = result.response.text();
 
         // Save assistant message
-        const [assistantMsg] = await db.insert(messages).values({
+        const assistantMsg = await saveMessage({
             conversationId: conversationId!,
             role: "assistant",
             content: responseText,
-        }).returning();
+        });
 
         return c.json({
             conversationId,
@@ -133,6 +155,32 @@ app.post("/", zValidator("json", sendMessageSchema), async (c) => {
         console.error("Gemini API Error:", error);
         return c.json({ error: "Failed to generate response" }, 500);
     }
+});
+// New GET route to fetch messages for a specific conversation
+app.get("/:conversationId/messages", async (c) => {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const conversationId = c.req.param("conversationId");
+
+    // Verify ownership of the conversation
+    const conversation = await db.query.conversations.findFirst({
+        where: eq(conversations.id, conversationId),
+    });
+
+    if (!conversation || conversation.userId !== session.user.id) {
+        return c.json({ error: "Conversation not found or unauthorized" }, 404);
+    }
+
+    // Fetch messages for the conversation
+    const chatMessages = await db.query.messages.findMany({
+        where: eq(messages.conversationId, conversationId),
+        orderBy: [messages.createdAt],
+    });
+
+    return c.json(chatMessages);
 });
 
 export default app;

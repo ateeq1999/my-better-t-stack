@@ -5,9 +5,12 @@
 		"outDir": "dist",
 		"baseUrl": ".",
 		"paths": {
-			"@/*": ["./src/*"]
+			"@/*": [
+				"./src/*"
+			]
 		},
 		"jsx": "react-jsx",
-		"jsxImportSource": "hono/jsx"
+		"jsxImportSource": "hono/jsx",
+		"ignoreDeprecations": "6.0"
 	}
 }
