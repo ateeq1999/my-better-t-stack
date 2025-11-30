@@ -9,6 +9,7 @@ import documentsRouter from "./routes/documents";
 import chatRouter from "./routes/chat";
 import subscriptionsRouter from "./routes/subscriptions";
 import auditLogsRouter from "./routes/audit-logs";
+import usersRouter from "./routes/users";
 
 const app = new Hono();
 
@@ -38,6 +39,7 @@ app.route("/api/projects", projectsRouter);
 app.route("/api/documents", documentsRouter);
 app.route("/api/chat", chatRouter);
 app.route("/api/audit-logs", auditLogsRouter);
+app.route("/api/users", usersRouter);
 
 export default app;
 export type AppType = typeof app;

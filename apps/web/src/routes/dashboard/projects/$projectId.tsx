@@ -13,6 +13,7 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { UploadDocumentDialog } from "@/components/upload-document-dialog";
+import { ChatInterface } from "@/components/chat/chat-interface";
 
 export const Route = createFileRoute("/dashboard/projects/$projectId")({
     component: ProjectDetailsPage,
@@ -44,6 +45,7 @@ function ProjectDetailsPage() {
                 <TabsList>
                     <TabsTrigger value="overview">Overview</TabsTrigger>
                     <TabsTrigger value="documents">Documents</TabsTrigger>
+                    <TabsTrigger value="chat">Chat</TabsTrigger>
                     <TabsTrigger value="settings">Settings</TabsTrigger>
                 </TabsList>
                 <TabsContent value="overview" className="space-y-4">
@@ -114,6 +116,9 @@ function ProjectDetailsPage() {
                             </TableBody>
                         </Table>
                     </Card>
+                </TabsContent>
+                <TabsContent value="chat" className="h-[calc(100vh-16rem)]">
+                    <ChatInterface projectId={project.id} />
                 </TabsContent>
                 <TabsContent value="settings" className="space-y-4">
                     <Card>

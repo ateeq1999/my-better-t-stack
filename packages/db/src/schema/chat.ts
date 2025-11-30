@@ -15,6 +15,7 @@ export const roleEnum = pgEnum("message_role", ["user", "assistant", "system"]);
 export const conversations = pgTable("conversation", {
     id: varchar("id", { length: 36 }).primaryKey().default(createId()),
     userId: text("user_id").notNull().references(() => user.id),
+    projectId: text("project_id"), // Optional link to a project
     title: text("title"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().$onUpdate(() => new Date()).notNull(),
