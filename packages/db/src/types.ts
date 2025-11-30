@@ -1,38 +1,43 @@
-import { type InferSelectModel, type InferInsertModel } from "drizzle-orm";
-import * as schema from "./schema";
+import {
+    user,
+    session,
+    account,
+    verification,
+} from "./schema/auth";
+import { projects } from "./schema/projects";
+import { documents } from "./schema/documents";
+import { conversations, messages } from "./schema/chat";
+import { subscriptions } from "./schema/subscriptions";
+import { auditLogs } from "./schema/audit-logs";
 
 // Auth
-export type User = InferSelectModel<typeof schema.user>;
-export type NewUser = InferInsertModel<typeof schema.user>;
-
-export type Session = InferSelectModel<typeof schema.session>;
-export type NewSession = InferInsertModel<typeof schema.session>;
-
-export type Account = InferSelectModel<typeof schema.account>;
-export type NewAccount = InferInsertModel<typeof schema.account>;
-
-export type Verification = InferSelectModel<typeof schema.verification>;
-export type NewVerification = InferInsertModel<typeof schema.verification>;
+export type User = typeof user.$inferSelect;
+export type NewUser = typeof user.$inferInsert;
+export type Session = typeof session.$inferSelect;
+export type NewSession = typeof session.$inferInsert;
+export type Account = typeof account.$inferSelect;
+export type NewAccount = typeof account.$inferInsert;
+export type Verification = typeof verification.$inferSelect;
+export type NewVerification = typeof verification.$inferInsert;
 
 // Projects
-export type Project = InferSelectModel<typeof schema.projects>;
-export type NewProject = InferInsertModel<typeof schema.projects>;
+export type Project = typeof projects.$inferSelect;
+export type NewProject = typeof projects.$inferInsert;
 
 // Documents
-export type Document = InferSelectModel<typeof schema.documents>;
-export type NewDocument = InferInsertModel<typeof schema.documents>;
+export type Document = typeof documents.$inferSelect;
+export type NewDocument = typeof documents.$inferInsert;
 
 // Chat
-export type Conversation = InferSelectModel<typeof schema.conversations>;
-export type NewConversation = InferInsertModel<typeof schema.conversations>;
-
-export type Message = InferSelectModel<typeof schema.messages>;
-export type NewMessage = InferInsertModel<typeof schema.messages>;
+export type Conversation = typeof conversations.$inferSelect;
+export type NewConversation = typeof conversations.$inferInsert;
+export type Message = typeof messages.$inferSelect;
+export type NewMessage = typeof messages.$inferInsert;
 
 // Subscriptions
-export type Subscription = InferSelectModel<typeof schema.subscriptions>;
-export type NewSubscription = InferInsertModel<typeof schema.subscriptions>;
+export type Subscription = typeof subscriptions.$inferSelect;
+export type NewSubscription = typeof subscriptions.$inferInsert;
 
 // Audit Logs
-export type AuditLog = InferSelectModel<typeof schema.auditLogs>;
-export type NewAuditLog = InferInsertModel<typeof schema.auditLogs>;
+export type AuditLog = typeof auditLogs.$inferSelect;
+export type NewAuditLog = typeof auditLogs.$inferInsert;

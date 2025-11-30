@@ -10,3 +10,4 @@ export const db = drizzle({ client: pool, schema });
 
 export * from "./schema";
 export * from "./types";
+export * from "./types";

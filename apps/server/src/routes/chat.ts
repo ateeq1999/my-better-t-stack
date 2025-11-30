@@ -6,14 +6,13 @@ import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { auth } from "@web/auth";
 import { model } from "../lib/gemini";
-import { type InsertMessage } from "@web/db/schema/chat";
 import { documents } from "@web/db/schema/documents";
+import { type NewMessage, type Conversation, type Message } from "@web/db";
 
 const app = new Hono();
 
-
 // Helper function to create a new conversation
-async function createConversation(userId: string, projectId: string | undefined, content: string) {
+async function createConversation(userId: string, projectId: string | undefined, content: string): Promise<Conversation | undefined> {
     const [newConv] = await db.insert(conversations).values({
         userId: userId,
         projectId: projectId,
@@ -23,7 +22,7 @@ async function createConversation(userId: string, projectId: string | undefined,
 }
 
 // Helper function to verify conversation ownership
-async function verifyConversationOwnership(conversationId: string, userId: string) {
+async function verifyConversationOwnership(conversationId: string, userId: string): Promise<Conversation | null> {
     const conversation = await db.query.conversations.findFirst({
         where: eq(conversations.id, conversationId),
     });
@@ -34,13 +33,28 @@ async function verifyConversationOwnership(conversationId: string, userId: strin
 }
 
 // Helper function to save a message
-async function saveMessage(message: Omit<InsertMessage, "id" | "createdAt">) {
+async function saveMessage(message: NewMessage) {
     const [newMessage] = await db.insert(messages).values(message).returning();
     return newMessage;
 }
 
+// New GET route to fetch all conversations for the authenticated user
+app.get("/conversations", async (c) => {
+    const session = await auth.api.getSession({ headers: c.req.raw.headers });
+    if (!session) {
+        return c.json({ error: "Unauthorized" }, 401);
+    }
+
+    const userConversations = await db.query.conversations.findMany({
+        where: eq(conversations.userId, session.user.id),
+        orderBy: [desc(conversations.updatedAt)],
+    });
+
+    return c.json(userConversations);
+});
+
 const sendMessageSchema = z.object({
-    conversationId: z.string().uuid().optional(),
+    conversationId: z.string().optional(),
     content: z.string().min(1),
     projectId: z.string().optional(),
 });
@@ -61,7 +75,7 @@ app.post("/", zValidator("json", sendMessageSchema), async (c) => {
     let conversation;
     if (!conversationId) {
         conversation = await createConversation(session.user.id, projectId, data.content);
-        conversationId = conversation.id;
+        conversationId = conversation?.id;
     } else {
         conversation = await verifyConversationOwnership(conversationId, session.user.id);
         if (!conversation) {
@@ -166,16 +180,14 @@ app.get("/:conversationId/messages", async (c) => {
     const conversationId = c.req.param("conversationId");
 
     // Verify ownership of the conversation
-    const conversation = await db.query.conversations.findFirst({
-        where: eq(conversations.id, conversationId),
-    });
+    const conversation = await verifyConversationOwnership(conversationId, session.user.id);
 
-    if (!conversation || conversation.userId !== session.user.id) {
+    if (!conversation) {
         return c.json({ error: "Conversation not found or unauthorized" }, 404);
     }
 
     // Fetch messages for the conversation
-    const chatMessages = await db.query.messages.findMany({
+    const chatMessages: Message[] = await db.query.messages.findMany({
         where: eq(messages.conversationId, conversationId),
         orderBy: [messages.createdAt],
     });
