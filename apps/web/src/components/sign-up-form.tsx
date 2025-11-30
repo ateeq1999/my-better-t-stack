@@ -150,6 +150,21 @@ export default function SignUpForm({
 				</form.Subscribe>
 			</form>
 
+			<div className="mt-4">
+				<Button
+					variant="outline"
+					className="w-full"
+					onClick={async () => {
+						await authClient.signIn.social({
+							provider: "google",
+							callbackURL: '/dashboard'
+						});
+					}}
+				>
+					Sign up with Google
+				</Button>
+			</div>
+
 			<div className="mt-4 text-center">
 				<Button
 					variant="link"

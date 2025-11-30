@@ -23,4 +23,8 @@ app.get("/", (c) => {
 	return c.text("OK");
 });
 
+app.get("/dashboard", (c) => {
+	return c.redirect("http://localhost:3001/dashboard");
+});
+
 export default app;
