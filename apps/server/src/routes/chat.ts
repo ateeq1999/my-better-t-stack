@@ -81,8 +81,14 @@ app.post("/", zValidator("json", sendMessageSchema), async (c) => {
         if (!conversation) {
             return c.json({ error: "Conversation not found or unauthorized" }, 404);
         }
-        // Use existing project ID if not provided
-        if (!projectId && conversation.projectId) {
+        // Use existing project ID if not provided, or update if a new one is given
+        if (projectId && projectId !== conversation.projectId) {
+            // Update the conversation with the new projectId
+            await db.update(conversations)
+                .set({ projectId: projectId })
+                .where(eq(conversations.id, conversationId));
+            conversation.projectId = projectId; // Update the local object as well
+        } else if (!projectId && conversation.projectId) {
             projectId = conversation.projectId;
         }
     }
