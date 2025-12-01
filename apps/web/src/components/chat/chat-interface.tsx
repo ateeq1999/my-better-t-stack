@@ -1,3 +1,7 @@
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -13,6 +17,7 @@ type Message = {
     role: "user" | "assistant";
     content: string;
     createdAt: string;
+    citations: any[] | null;
 };
 
 type Conversation = {
@@ -27,8 +32,12 @@ export function ChatInterface({ projectId }: { projectId?: string }) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const queryClient = useQueryClient();
 
-    // Fetch conversations
-    const { data: conversations, isLoading: isLoadingConversations } = useQuery({
+    const {
+        data: conversations,
+        isLoading: isLoadingConversations,
+        isError: isErrorConversations,
+        error: errorConversations,
+    } = useQuery({
         queryKey: ["conversations"],
         queryFn: async () => {
             // @ts-ignore
@@ -39,7 +48,12 @@ export function ChatInterface({ projectId }: { projectId?: string }) {
     });
 
     // Fetch messages for selected conversation
-    const { data: messages, isLoading: isLoadingMessages } = useQuery({
+    const {
+        data: messages,
+        isLoading: isLoadingMessages,
+        isError: isErrorMessages,
+        error: errorMessages,
+    } = useQuery({
         queryKey: ["messages", selectedConversationId],
         queryFn: async () => {
             if (!selectedConversationId) return [];
@@ -109,8 +123,23 @@ export function ChatInterface({ projectId }: { projectId?: string }) {
                 </div>
                 <ScrollArea className="h-full">
                     <div className="space-y-2">
+                        {isErrorConversations && (
+                            <Alert variant="destructive">
+                                <AlertTitle>Error</AlertTitle>
+                                <AlertDescription>
+                                    {(errorConversations as Error)?.message || "Failed to fetch conversations."}
+                                </AlertDescription>
+                            </Alert>
+                        )}
                         {isLoadingConversations ? (
-                            <p className="text-sm text-muted-foreground">Loading...</p>
+                            <div className="space-y-2">
+                                {[...Array(5)].map((_, i) => (
+                                    <div key={i} className="rounded-lg p-3">
+                                        <Skeleton className="h-4 w-3/4" />
+                                        <Skeleton className="mt-1 h-3 w-1/2" />
+                                    </div>
+                                ))}
+                            </div>
                         ) : (
                             conversations?.map((conv: Conversation) => (
                                 <button
@@ -138,43 +167,64 @@ export function ChatInterface({ projectId }: { projectId?: string }) {
             <div className="flex flex-1 flex-col">
                 <ScrollArea className="flex-1 rounded-lg border bg-background p-4 shadow-sm" ref={scrollRef}>
                     <div className="space-y-4">
-                        {!selectedConversationId && messages?.length === 0 && (
-                            <div className="flex h-full items-center justify-center text-muted-foreground">
-                                <p>Select a conversation or start a new one.</p>
+                        {isLoadingMessages ? (
+                            <div className="space-y-4">
+                                <div className="flex items-start gap-3">
+                                    <Skeleton className="h-8 w-8 shrink-0 rounded-full border" />
+                                    <Skeleton className="h-16 w-3/4 rounded-lg" />
+                                </div>
+                                <div className="flex flex-row-reverse items-start gap-3">
+                                    <Skeleton className="h-8 w-8 shrink-0 rounded-full border" />
+                                    <Skeleton className="h-12 w-2/3 rounded-lg" />
+                                </div>
                             </div>
-                        )}
-                        {messages?.slice().reverse().map((msg: Message) => (
-                            <div
-                                key={msg.id}
-                                className={cn(
-                                    "flex gap-3",
-                                    msg.role === "user" ? "flex-row-reverse" : "flex-row"
+                        ) : (
+                            <>
+                                {!selectedConversationId && messages?.length === 0 && (
+                                    <div className="flex h-full items-center justify-center text-muted-foreground">
+                                        <p>Select a conversation or start a new one.</p>
+                                    </div>
                                 )}
-                            >
-                                <div
-                                    className={cn(
-                                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border",
-                                        msg.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
-                                    )}
-                                >
-                                    {msg.role === "user" ? (
-                                        <User className="h-4 w-4" />
-                                    ) : (
-                                        <Bot className="h-4 w-4" />
-                                    )}
-                                </div>
-                                <div
-                                    className={cn(
-                                        "max-w-[80%] rounded-lg px-4 py-2 text-sm",
-                                        msg.role === "user"
-                                            ? "bg-primary text-primary-foreground"
-                                            : "bg-muted"
-                                    )}
-                                >
-                                    {msg.content}
-                                </div>
-                            </div>
-                        ))}
+                                {messages?.slice().reverse().map((msg: Message) => (
+                                    <div
+                                        key={msg.id}
+                                        className={cn(
+                                            "flex items-start gap-3",
+                                            msg.role === "user" ? "flex-row-reverse" : "flex-row"
+                                        )}
+                                    >
+                                        <Avatar className="h-8 w-8 shrink-0 border">
+                                            <AvatarFallback>
+                                                {msg.role === "user" ? (
+                                                    <User className="h-4 w-4" />
+                                                ) : (
+                                                    <Bot className="h-4 w-4" />
+                                                )}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div
+                                            className={cn(
+                                                "max-w-[80%] rounded-lg px-4 py-2 text-sm",
+                                                msg.role === "user"
+                                                    ? "bg-primary text-primary-foreground"
+                                                    : "bg-muted"
+                                            )}
+                                        >
+                                            {msg.content}
+                                            {msg.citations && (
+                                                <div className="mt-2 flex flex-wrap gap-2">
+                                                    {msg.citations.map((citation, index) => (
+                                                        <Badge key={index} variant="secondary">
+                                                            {citation.source}: {citation.page}
+                                                        </Badge>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </>
+                        )}
                         {sendMessageMutation.isPending && (
                             <div className="flex gap-3">
                                 <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-muted">
